@@ -5,7 +5,7 @@ using TMPro;
 public enum TileType { EMPTY, BOOM, COUNT }
 public class Tile : MonoBehaviour
 {
-    enum MarkState { NO_MARK, FLAG, QUESTION }
+    enum MarkState { NO_MARK, FLAG }
     public TileType TileType { get { return mTileType; } }
     public int Index { get { return mIndex; } }
 
@@ -17,12 +17,11 @@ public class Tile : MonoBehaviour
 
     [SerializeField] GameObject mCover;
     [SerializeField] GameObject mFlag;
-    [SerializeField] GameObject mQuestion;
     [SerializeField] GameObject mRedBG;
     [SerializeField] GameObject mRedCross;
     [SerializeField] Image mCount;
     [SerializeField] GameObject mBoom;
-    [SerializeField] Button button;
+    [SerializeField] Image touchArea;
     [SerializeField] Sprite[] mCountSprites = new Sprite[8];
 
     public void Initialize(Manager manager, int index)
@@ -34,18 +33,14 @@ public class Tile : MonoBehaviour
     //タイルを掘る
     public void OnDigged()
     {
+        if (mIsDigged || mMarkState == MarkState.FLAG)
+            return;
+
         if (!mManager.IsSettingBoom())
         {
             mManager.SetTileData(this);
             return;
         }
-
-
-        if (mIsDigged || mMarkState == MarkState.FLAG)
-            return;
-
-        if (mMarkState == MarkState.QUESTION)
-            mQuestion.SetActive(false);
 
         mIsDigged = true;
 
@@ -69,6 +64,39 @@ public class Tile : MonoBehaviour
         }
     }
 
+    float tapTime = 0;
+    bool isDown = false;
+
+    public void OnPointerDown()
+    {
+        isDown = true;
+        Debug.Log("push");
+    }
+
+    private void Update()
+    {
+        if (isDown)
+        {
+            tapTime += Time.deltaTime;
+            if (tapTime >= 0.5f)
+            {
+                SetMark();
+                isDown = false;
+            }
+        }
+    }
+
+    public void OnPointerUp()
+    {
+        isDown = false;
+        Debug.Log(tapTime);
+
+        if (tapTime < 0.5f)
+            OnDigged();
+
+        tapTime = 0;
+    }
+
     //周りの地雷数を設定/表示
     public void SetCount(int count)
     {
@@ -85,17 +113,12 @@ public class Tile : MonoBehaviour
         mBoom.SetActive(true);
     }
 
-    public void SetEmpty()
-    {
-        mTileType = TileType.EMPTY;
-    }
-
     //マークを付ける
     public void SetMark()
     {
         if (mIsDigged)
             return;
-
+        Debug.Log(mMarkState);
         switch (mMarkState)
         {
             case MarkState.NO_MARK:
@@ -103,10 +126,6 @@ public class Tile : MonoBehaviour
                 break;
             case MarkState.FLAG:
                 mFlag.SetActive(false);
-                mQuestion.SetActive(true);
-                break;
-            case MarkState.QUESTION:
-                mQuestion.SetActive(false);
                 break;
             default:
                 break;
@@ -124,12 +143,5 @@ public class Tile : MonoBehaviour
             mRedCross.SetActive(true);
         else if (mMarkState != MarkState.FLAG && mTileType == TileType.BOOM)
             mCover.SetActive(false);
-
-        button.interactable = false;
-    }
-
-    public void GameClear()
-    {
-        button.interactable = false;
     }
 }

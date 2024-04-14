@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class Manager : MonoBehaviour
 {
@@ -15,9 +16,13 @@ public class Manager : MonoBehaviour
     [SerializeField] GameObject mGameOverImage;
     [SerializeField] GameObject mGameClearImage;
 
+    [SerializeField] TextMeshProUGUI labelCountFlags;
+    [SerializeField] TextMeshProUGUI labelCountBooms;
+
     Tile[] mTiles;
     Tile[] mBoomTiles;
     int mDiggedTileCount;
+    int countFlags = 0;
 
     bool mIsSettingBoom = false;
     public bool IsSettingBoom() => mIsSettingBoom;
@@ -26,6 +31,8 @@ public class Manager : MonoBehaviour
     private void Start()
     {
         GenerateTiles();
+        labelCountFlags.text = "0";
+        labelCountBooms.text = mTotalBoomCount.ToString();
     }
 
     //タイルを設置
@@ -183,9 +190,5 @@ public class Manager : MonoBehaviour
     void GameClear()
     {
         Instantiate(mGameClearImage, mTilesRoot.transform.parent.transform);
-        foreach (var tile in mTiles)
-        {
-            tile.GameClear();
-        }
     }
 }
