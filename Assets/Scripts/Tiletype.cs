@@ -34,7 +34,12 @@ public class Tile : MonoBehaviour
     //タイルを掘る
     public void OnDigged()
     {
-        if (mManager.IsEndGame()) return;
+        if (!mManager.IsSettingBoom())
+        {
+            mManager.SetTileData(this);
+            return;
+        }
+
 
         if (mIsDigged || mMarkState == MarkState.FLAG)
             return;
@@ -80,6 +85,11 @@ public class Tile : MonoBehaviour
         mBoom.SetActive(true);
     }
 
+    public void SetEmpty()
+    {
+        mTileType = TileType.EMPTY;
+    }
+
     //マークを付ける
     public void SetMark()
     {
@@ -115,7 +125,11 @@ public class Tile : MonoBehaviour
         else if (mMarkState != MarkState.FLAG && mTileType == TileType.BOOM)
             mCover.SetActive(false);
 
-        this.enabled = false;
+        button.interactable = false;
+    }
 
+    public void GameClear()
+    {
+        button.interactable = false;
     }
 }

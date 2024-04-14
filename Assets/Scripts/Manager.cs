@@ -18,14 +18,14 @@ public class Manager : MonoBehaviour
     Tile[] mTiles;
     Tile[] mBoomTiles;
     int mDiggedTileCount;
-    bool isEndGame = false;
-    public bool IsEndGame() => isEndGame;
+
+    bool mIsSettingBoom = false;
+    public bool IsSettingBoom() => mIsSettingBoom;
+
 
     private void Start()
     {
         GenerateTiles();
-        SetBooms();
-        SetCounts();
     }
 
     //タイルを設置
@@ -35,7 +35,7 @@ public class Manager : MonoBehaviour
         Vector2 rootSize = new Vector2(mTilerootRect.rect.width, mTilerootRect.rect.height);
 
         mTileSize = (rootSize.x - mFieldSpacing * (mTileCountX - 1)) / mTileCountX;
-        mTileCountY = (int)((rootSize.y - mFieldOffset) / mTileSize);
+        mTileCountY = (int)(rootSize.y / mTileSize);
 
         mTilesRoot.cellSize = new Vector2(mTileSize, mTileSize);
         mTilesRoot.spacing = new Vector2(mFieldSpacing, mFieldSpacing);
@@ -51,12 +51,37 @@ public class Manager : MonoBehaviour
         }
     }
 
-    //地雷を設置
-    void SetBooms()
+    public void SetTileData(Tile selectedTile)
     {
-        List<Tile> safeTiles = new List<Tile>(mTiles.Length);
-        safeTiles.AddRange(mTiles);
+        SetBooms(selectedTile);
+        SetCounts();
+        mIsSettingBoom = true;
+        selectedTile.OnDigged();
+    }
 
+    //地雷を設置
+    void SetBooms(Tile selectedTile)
+    {
+        List<Tile> safeTiles = new List<Tile>();
+
+        // タップしたタイルとその周りをsafeTileから除く
+        foreach (Tile tile in mTiles)
+        {
+            bool isExcluded = tile == selectedTile;
+            foreach (var aroundExcludedTileIndex in GetAroundIndices(selectedTile.Index))
+            {
+                if (tile.Index == aroundExcludedTileIndex)
+                {
+                    isExcluded = true;
+                }
+            }
+            if (!isExcluded)
+            {
+                safeTiles.Add(tile);
+            }
+        }
+
+        // 爆弾マスの設定
         mBoomTiles = new Tile[mTotalBoomCount];
 
         for (int i = 0; i < mTotalBoomCount; i++)
@@ -65,7 +90,7 @@ public class Manager : MonoBehaviour
             Tile boomTile = safeTiles[index];
 
             mBoomTiles[i] = boomTile;
-            safeTiles.RemoveAt(index);
+            safeTiles.Remove(boomTile);
 
             boomTile.SetBoom();
         }
@@ -145,7 +170,6 @@ public class Manager : MonoBehaviour
         {
             tile.GameOverCheck();
         }
-        isEndGame = true;
     }
 
     public void CountDiggedTile()
@@ -158,7 +182,10 @@ public class Manager : MonoBehaviour
     //ゲームクリア
     void GameClear()
     {
-        Instantiate(mGameClearImage, mTilesRoot.transform);
-        isEndGame = true;
+        Instantiate(mGameClearImage, mTilesRoot.transform.parent.transform);
+        foreach (var tile in mTiles)
+        {
+            tile.GameClear();
+        }
     }
 }
