@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1b0d453ce51174c9694190a4ee92fcba
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - mTilePrefab: {fileID: -8217758391948197374, guid: 892e4f7cd85a24c86bcc2a49459869ff, type: 3}
+  - mTilesRoot: {fileID: 3737111121385103833, guid: 892e4f7cd85a24c86bcc2a49459869ff, type: 3}
+  - mGameOverImage: {instanceID: 0}
+  - mGameClearImage: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
