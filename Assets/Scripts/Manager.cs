@@ -1,14 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Manager : MonoBehaviour
 {
     [SerializeField] Tile mTilePrefab;
-    [SerializeField] float mTileSize = 50;
-    [SerializeField] Vector2Int mFieldSize = new Vector2Int(10, 10);
-    [SerializeField] int mFieldGap = 50;
+    float mTileSize = 50;
+    [SerializeField] int mTileCountX = 10;
+    int mTileCountY = 10;
+    [SerializeField] int mFieldSpacing = 50;
+    [SerializeField] int mFieldOffset = 80;
     [SerializeField] int mTotalBoomCount = 20;
-    [SerializeField] GameObject mTilesRoot;
+    [SerializeField] GridLayoutGroup mTilesRoot;
     [SerializeField] GameObject mGameOverImage;
     [SerializeField] GameObject mGameClearImage;
 
@@ -28,22 +31,20 @@ public class Manager : MonoBehaviour
     //タイルを設置
     void GenerateTiles()
     {
-        Vector2 canvasCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+        RectTransform mTilerootRect = mTilesRoot.transform as RectTransform;
+        Vector2 rootSize = new Vector2(mTilerootRect.rect.width, mTilerootRect.rect.height);
 
-        mTileSize = (Screen.width - 40) / canvasCenter.x;
+        mTileSize = (rootSize.x - mFieldSpacing * (mTileCountX - 1)) / mTileCountX;
+        mTileCountY = (int)((rootSize.y - mFieldOffset) / mTileSize);
 
-        float x = (mFieldSize.x - 1f) / 2f;
-        float y = (mFieldSize.y - 1f) / 2f;
-        Vector2 leftUnderTilePos = canvasCenter - new Vector2(x, y) * (mTileSize + mFieldGap);
+        mTilesRoot.cellSize = new Vector2(mTileSize, mTileSize);
+        mTilesRoot.spacing = new Vector2(mFieldSpacing, mFieldSpacing);
 
-        mTiles = new Tile[mFieldSize.x * mFieldSize.y];
+        mTiles = new Tile[mTileCountX * mTileCountY];
 
         for (int i = 0; i < mTiles.Length; i++)
         {
-            Vector2 thisTilePos = leftUnderTilePos + new Vector2(i % mFieldSize.x, i / mFieldSize.x) * mFieldGap;
-
             Tile tile = Instantiate(mTilePrefab, mTilesRoot.transform);
-            tile.GetComponent<RectTransform>().position = thisTilePos;
 
             tile.Initialize(this, i);
             mTiles[i] = tile;
@@ -100,36 +101,36 @@ public class Manager : MonoBehaviour
     {
         List<int> result = new List<int>(8);
 
-        int index0 = index - mFieldSize.x - 1;
-        if (index0 >= 0 && index0 % mFieldSize.x != mFieldSize.x - 1)
+        int index0 = index - mTileCountX - 1;
+        if (index0 >= 0 && index0 % mTileCountX != mTileCountX - 1)
             result.Add(index0);
 
-        int index1 = index - mFieldSize.x;
+        int index1 = index - mTileCountX;
         if (index1 >= 0)
             result.Add(index1);
 
-        int index2 = index - mFieldSize.x + 1;
-        if (index2 >= 0 && index2 % mFieldSize.x != 0)
+        int index2 = index - mTileCountX + 1;
+        if (index2 >= 0 && index2 % mTileCountX != 0)
             result.Add(index2);
 
         int index3 = index - 1;
-        if (index3 >= 0 && index3 % mFieldSize.x != mFieldSize.x - 1)
+        if (index3 >= 0 && index3 % mTileCountX != mTileCountX - 1)
             result.Add(index3);
 
         int index4 = index + 1;
-        if (index4 % mFieldSize.x != 0)
+        if (index4 % mTileCountX != 0)
             result.Add(index4);
 
-        int index5 = index + mFieldSize.x - 1;
-        if (index5 < mTiles.Length && index5 % mFieldSize.x != mFieldSize.x - 1)
+        int index5 = index + mTileCountX - 1;
+        if (index5 < mTiles.Length && index5 % mTileCountX != mTileCountX - 1)
             result.Add(index5);
 
-        int index6 = index + mFieldSize.x;
+        int index6 = index + mTileCountX;
         if (index6 < mTiles.Length)
             result.Add(index6);
 
-        int index7 = index + mFieldSize.x + 1;
-        if (index7 < mTiles.Length && index7 % mFieldSize.x != 0)
+        int index7 = index + mTileCountX + 1;
+        if (index7 < mTiles.Length && index7 % mTileCountX != 0)
             result.Add(index7);
 
         return result.ToArray();
@@ -150,7 +151,7 @@ public class Manager : MonoBehaviour
     public void CountDiggedTile()
     {
         mDiggedTileCount++;
-        if (mDiggedTileCount == mFieldSize.x * mFieldSize.y - mTotalBoomCount)
+        if (mDiggedTileCount == mTileCountX * mTileCountY - mTotalBoomCount)
             GameClear();
     }
 
